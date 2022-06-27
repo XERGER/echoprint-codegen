@@ -46,6 +46,21 @@ typedef struct {
     codegen_response_t *response;
 } thread_parm_t;
 
+// https://stackoverflow.com/questions/17258029/c-setenv-undefined-identifier-in-visual-studio
+#ifdef _WIN32
+int setenv(const char* envname, const char* envvalue, int overwrite) {
+    int errcode = 0;
+    if (!overwrite) {
+        size_t envsize = 0;
+        errcode = getenv_s(&envsize, NULL, 0, envname);
+        if (errcode || envsize) return errcode;
+    }
+    return _putenv_s(envname, envvalue);
+}
+#else
+int setenv(const char* envname, const char* envvalue, int overwrite);
+#endif
+
 // Thank you http://stackoverflow.com/questions/150355/programmatically-find-the-number-of-cores-on-a-machine
 #ifdef _WIN32
 #include <windows.h>
@@ -218,21 +233,22 @@ char *make_json_string(codegen_response_t* response) {
 }
 
 int main(int argc, char** argv) {
-    if (argc < 2) {
-        fprintf(stderr, "Usage: %s [ filename | -s ] [seconds_start] [seconds_duration] [< file_list (if -s is set)]\n", argv[0]);
+    if (argc < 3) {
+        fprintf(stderr, "Usage: %s [ path-to-ffmpeg] [ filename | -s ] [seconds_start] [seconds_duration] [< file_list (if -s is set)]\n", argv[0]);
         exit(-1);
     }
 
     try {
         string files[MAX_FILES];
-        char *filename = argv[1];
+        char *ffmpeg = argv[1];
+        char *filename = argv[2];
         int count = 0;
         int start_offset = 0;
         int duration = 0;
         int already = 0;
-        if (argc > 2) start_offset = atoi(argv[2]);
-        if (argc > 3) duration = atoi(argv[3]);
-        if (argc > 4) already = atoi(argv[4]);
+        if (argc > 3) start_offset = atoi(argv[3]);
+        if (argc > 4) duration = atoi(argv[4]);
+        if (argc > 5) already = atoi(argv[5]);
         // If you give it -s, it means to read in a list of files from stdin.
         if (strcmp(filename, "-s") == 0) {
             while(cin) {
@@ -248,6 +264,8 @@ int main(int argc, char** argv) {
         } else files[count++] = filename;
 
         if(count == 0) throw std::runtime_error("No files given.\n");
+
+        setenv("FFMPEG", ffmpeg, 1);
 
 
 #ifdef _WIN32

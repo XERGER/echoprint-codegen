@@ -60,13 +60,17 @@ public:
 protected:
     std::string GetCommandLine(const char* filename) {
         // TODO: Windows
+
+        char* ffmpeg;
+        ffmpeg = getenv("FFMPEG");
+
         char message[4096] = {0};
         if (_Offset_s == 0 && _Seconds == 0)
-            snprintf(message, NELEM(message), "ffmpeg -i \"%s\"  -ac %d -ar %d -f s16le - 2>%s",
-                    filename, Params::AudioStreamInput::Channels, (uint) Params::AudioStreamInput::SamplingRate, DEVNULL);
+            snprintf(message, NELEM(message), "%s -i \"%s\"  -ac %d -ar %d -f s16le - 2>%s",
+                    ffmpeg, filename, Params::AudioStreamInput::Channels, (uint) Params::AudioStreamInput::SamplingRate, DEVNULL);
         else
-            snprintf(message, NELEM(message), "ffmpeg -i \"%s\"  -ac %d -ar %d -f s16le -t %d -ss %d - 2>%s",
-                    filename, Params::AudioStreamInput::Channels, (uint) Params::AudioStreamInput::SamplingRate, _Seconds, _Offset_s, DEVNULL);
+            snprintf(message, NELEM(message), "%s -i \"%s\"  -ac %d -ar %d -f s16le -t %d -ss %d - 2>%s",
+                    ffmpeg, filename, Params::AudioStreamInput::Channels, (uint) Params::AudioStreamInput::SamplingRate, _Seconds, _Offset_s, DEVNULL);
 
         return std::string(message);
     }
