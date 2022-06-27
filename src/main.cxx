@@ -116,7 +116,7 @@ codegen_response_t *codegen_file(char* filename, int start_offset, int duration,
     response->error = NULL;
     response->codegen = NULL;
 
-    auto_ptr<FfmpegStreamInput> pAudio(new FfmpegStreamInput());
+    unique_ptr<FfmpegStreamInput> pAudio(new FfmpegStreamInput());
     pAudio->ProcessFile(filename, start_offset, duration);
 
     if (pAudio.get() == NULL) { // Unable to decode!
@@ -187,7 +187,7 @@ char *make_json_string(codegen_response_t* response) {
     }
     
     // Get the ID3 tag information.
-    auto_ptr<Metadata> pMetadata(new Metadata(response->filename));
+    unique_ptr<Metadata> pMetadata(new Metadata(response->filename));
 
     // preamble + codelen
     char* output = (char*) malloc(sizeof(char)*(16384 + strlen(response->codegen->getCodeString().c_str()) ));
