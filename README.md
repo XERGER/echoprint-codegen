@@ -4,13 +4,11 @@
 
 Echoprint is an open source music fingerprint and resolving framework powered by the [The Echo Nest](http://the.echonest.com/ "The Echo Nest"). The [code generator](http://github.com/echonest/echoprint-codegen "echoprint-codegen") (library to convert PCM samples from a microphone or file into Echoprint codes) is open source (MIT licensed) and free for any use. The [server component](http://github.com/echonest/echoprint-server "echoprint-server") that stores and resolves queries is open source (Apache 2 licensed) and free for any use. The [data for resolving to millions of songs](http://echoprint.me/data "Echoprint Data") is free for any use provided any changes or additions are merged back to the community. 
 
-[Read more about Echoprint here](http://echoprint.me)
-
 There are two modes of operation of the Echoprint codegen:
 
 1. the codegen library (libcodegen) is meant to be linked into code that passes it a buffer of PCM data and will output a code string.
  
-2. the codegen binary runs standalone, accepts filenames as inputs and runs in a multithreaded worker mode.
+2. the codegen binary runs standalone, accepts path to ffmpeg and filenames as inputs and runs in a multithreaded worker mode.
 
 ## Requirements
 
@@ -21,21 +19,21 @@ There are two modes of operation of the Echoprint codegen:
 
 ### Additional requirements for the codegen binary
 
-* [TagLib](http://developer.kde.org/~wheeler/taglib.html "TagLib")
+* TagLib
 * ffmpeg - this is called via shell and is not linked into codegen
 
 On Ubuntu or Debian you can install these dependencies with:
 
-    sudo apt-get install ffmpeg libboost1.42-dev libtag1-dev zlib1g-dev
+    sudo apt-get install libtag1-dev libboost-dev zlib1g-dev
 On OS-X with [homebrew](http://mxcl.github.io/homebrew/) you can use:
 
-    brew install ffmpeg boost taglib
+    brew install boost taglib
 
 On Windows:
 
 Refer to the documentation under the windows folder for more specifics.
 
-The binary generated in Windows will be named codegen by default where as on Linux or Mac OS-X it is named echoprint-codegen.
+The binary generated in Windows will be named _codegen.exe_ by default where as on Linux or Mac OS-X it is named _echoprint-codegen_.
 
 ## Notes about libcodegen:
 
@@ -55,9 +53,10 @@ You only need to query for 20 seconds of audio to get a result.
 
 ## Notes about the codegen binary
 
-The makefile builds an example code generator that uses libcodegen, called "codegen." This code generator has more features -- it will output ID3 tag information and uses ffmpeg to decode any type of file. If you don't need to compile libcodegen into your app you can rely on this. Note that you need to have ffmpeg installed and accessible on your path for this to work.
+The makefile builds an example code generator that uses libcodegen, called "codegen." This code generator has more features -- it will output ID3 tag information and uses ffmpeg to decode any type of file. If you don't need to compile libcodegen into your app you can rely on this. 
+Note that you will need to have a static build of ffmpeg for the selected platform and provide it as the first argument.
 
-    ./echoprint-codegen billie_jean.mp3 10 30
+    ./echoprint-codegen ./ffmpeg/bin/ffmpeg billie_jean.mp3 10 30
 
 Will take 30 seconds of audio from 10 seconds into the file and output JSON suitable for querying:
 
@@ -67,7 +66,7 @@ You can host your own [Echoprint server](http://github.com/echonest/echoprint-se
 
 Codegen also runs in a multithreaded mode for bulk resolving:
 
-    ./echoprint-codegen -s 10 30 < file_list
+    ./echoprint-codegen ./ffmpeg/bin/ffmpeg -s 10 30 < file_list
 
 Will compute codes for every file in file_list for 30 seconds starting at 10 seconds. (It tries to be smart about the number of threads to use.) It will output a JSON list.
 
@@ -83,13 +82,3 @@ Decoding from MP3 will be the bottleneck for most implementations. Decoders like
     real        0m0.079s
     user        0m0.067s
     sys         0m0.007s
-
-### Accuracy
-
-Look at http://echoprint.me for information on the accuracy of the echoprint system.
-
-## FAQ
-
-Q: I get "Couldn't decode any samples with: ffmpeg" when running codegen
-
-A: When running the example code generator (echoprint-codegen) make sure ffmpeg is accessible to your path. Try running ffmpeg filename.mp3 on the file you are testing the code generator with. If it doesn't work, codegen won't work.
